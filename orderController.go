@@ -1,8 +1,5 @@
 package main
 
-//https://codefile.io/f/2rmOosWd5vOGO9zyGEBF
-//https://codefile.io/f/vj9htJpxHqITnDynGemM ---code
-//https://codefile.io/f/vj9htJpxHqITnDynGemM
 import (
 	"database/sql"
 	"encoding/json"
@@ -11,21 +8,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/BachhavPriyanka/BookStore_Project/types"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 var err error
 var db *sql.DB
-
-type Orders struct {
-	OrderId      int    `json:"OrderId"`
-	UserId       int    `json:"UserId"`
-	BookId       int    `json:"BookId"`
-	Quantity     int    `json:"Quantity"`
-	OrderDate    string `json:"OrderDate"`
-	PriceOfOrder int    `json:"PriceOfOrder"`
-	OrderStatus  string `json:"OrderStatus"`
-}
 
 func main() {
 	var err error
@@ -56,7 +44,7 @@ func handleCancelOrderByID(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodPut {
 		writer.Write([]byte("1 to keep Order Active AND 0 to Cancel Order"))
 
-		var data Orders
+		var data types.Orders
 		json.NewDecoder(request.Body).Decode(&data)
 
 		id, err := strconv.Atoi(request.URL.Path[len("/api/order/cancelOrder/"):])
@@ -84,10 +72,10 @@ func handleRetrieveOrderByID(writer http.ResponseWriter, request *http.Request) 
 		rows, err := db.Query("SELECT * FROM orders WHERE orderId = ?", id)
 		defer rows.Close()
 
-		orderGet := []Orders{}
+		orderGet := []types.Orders{}
 
 		for rows.Next() {
-			var order Orders
+			var order types.Orders
 			if err := rows.Scan(&order.OrderId, &order.UserId, &order.BookId, &order.Quantity, &order.OrderDate, &order.PriceOfOrder, &order.OrderStatus); err != nil {
 				writer.Write([]byte("ORDER-ID NOT FOUND"))
 				http.Error(writer, err.Error(), http.StatusInternalServerError)
@@ -101,7 +89,7 @@ func handleRetrieveOrderByID(writer http.ResponseWriter, request *http.Request) 
 
 func handleRetrieveAllOrders(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodGet {
-		var order []Orders
+		var order []types.Orders
 		rows, err := db.Query("SELECT * FROM orders;")
 		if err != nil {
 			fmt.Printf("error in quering all orders: %v", err)
@@ -110,7 +98,7 @@ func handleRetrieveAllOrders(writer http.ResponseWriter, request *http.Request) 
 		defer rows.Close()
 
 		for rows.Next() {
-			var orderData Orders
+			var orderData types.Orders
 			if err := rows.Scan(&orderData.OrderId, &orderData.UserId, &orderData.BookId, &orderData.Quantity, &orderData.OrderDate, &orderData.PriceOfOrder, &orderData.OrderStatus); err != nil {
 				fmt.Printf("error in query all orders: %v", err)
 				http.Error(writer, err.Error(), http.StatusInternalServerError)
@@ -123,7 +111,7 @@ func handleRetrieveAllOrders(writer http.ResponseWriter, request *http.Request) 
 
 func handleInsertion(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodPost {
-		var orderPost Orders
+		var orderPost types.Orders
 		json.NewDecoder(request.Body).Decode(&orderPost)
 
 		_, err = db.Exec("INSERT INTO orders (orderId, userId, bookId, quantity ,orderDate, price ,orderStatus) VALUES (?,?,?,?,?,?,?)", orderPost.OrderId, orderPost.UserId, orderPost.BookId, orderPost.Quantity, orderPost.OrderDate, orderPost.PriceOfOrder, orderPost.OrderStatus)

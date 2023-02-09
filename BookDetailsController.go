@@ -8,17 +8,11 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/BachhavPriyanka/BookStore_Project/types"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type Books struct {
-	Id           int    `json:"id"`
-	Title        string `json:"title"`
-	Author       string `json:"author"`
-	BookQuantity int    `json:"bookQuantity"`
-}
-
-// package name "sql" is misspelled as "Sql".
 var db *sql.DB
 
 func main() {
@@ -63,7 +57,7 @@ func handleDelete(writer http.ResponseWriter, request *http.Request) {
 
 func handleUpdate(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodPut {
-		var dataStore Books
+		var dataStore types.Books
 		json.NewDecoder(request.Body).Decode(&dataStore)
 
 		id, err := strconv.Atoi(request.URL.Path[len("/update/"):])
@@ -81,7 +75,7 @@ func handleUpdate(writer http.ResponseWriter, request *http.Request) {
 
 func handleAddBook(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodPost {
-		var dataStore Books
+		var dataStore types.Books
 		json.NewDecoder(request.Body).Decode(&dataStore)
 
 		_, err := db.Exec("Insert into books (Id,Title,Author,bookQuantity) values (?, ?, ?, ?)", dataStore.Id, dataStore.Title, dataStore.Author, dataStore.BookQuantity)
@@ -105,9 +99,9 @@ func handleBookById(writer http.ResponseWriter, request *http.Request) {
 			http.Error(writer, err.Error(), http.StatusInternalServerError)
 		}
 
-		bookDetails := []Books{}
+		bookDetails := []types.Books{}
 		for rows.Next() {
-			var bookDetail Books
+			var bookDetail types.Books
 			rows.Scan(&bookDetail.Id, &bookDetail.Title, &bookDetail.Author, &bookDetail.BookQuantity)
 			if err != nil {
 				http.Error(writer, err.Error(), http.StatusInternalServerError)
@@ -127,9 +121,9 @@ func handleBookByName(writer http.ResponseWriter, request *http.Request) {
 			http.Error(writer, err.Error(), http.StatusInternalServerError)
 		}
 
-		bookDetails := []Books{}
+		bookDetails := []types.Books{}
 		for rows.Next() {
-			var bookDetail Books
+			var bookDetail types.Books
 			rows.Scan(&bookDetail.Id, &bookDetail.Title, &bookDetail.Author, &bookDetail.BookQuantity)
 			if err != nil {
 				http.Error(writer, err.Error(), http.StatusInternalServerError)
@@ -149,10 +143,10 @@ func handleAllBooks(writer http.ResponseWriter, request *http.Request) {
 			return
 		}
 
-		bookDetails := []Books{}
+		bookDetails := []types.Books{}
 
 		for rows.Next() {
-			var book Books
+			var book types.Books
 			err = rows.Scan(&book.Id, &book.Title, &book.Author, &book.BookQuantity)
 			if err != nil {
 				http.Error(writer, err.Error(), http.StatusInternalServerError)

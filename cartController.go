@@ -8,22 +8,10 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/BachhavPriyanka/BookStore_Project/types"
+
 	_ "github.com/go-sql-driver/mysql"
 )
-
-type Cart struct {
-	BookName string `json:bookName`
-	BookID   int    `json:"bookID"`
-	CartID   int    `json:"cartID"`
-	Quantity int    `json:"quantity"`
-}
-
-type Books struct {
-	Id           int    `json:"id"`
-	Title        string `json:"title"`
-	Author       string `json:"author"`
-	BookQuantity int    `json:"bookQuantity"`
-}
 
 type ResponseDTO struct {
 	Message string `json:"message"`
@@ -62,8 +50,8 @@ func Operation() {
 
 func handleDecreaseQuantity(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodGet {
-		var cart Cart
-		var book Books
+		var cart types.Cart
+		var book types.Books
 
 		cartId, err := strconv.Atoi(request.URL.Path[len("/api/cart/decreaseQuantity/"):])
 		if err != nil {
@@ -122,8 +110,8 @@ func handleDecreaseQuantity(writer http.ResponseWriter, request *http.Request) {
 
 func handleIncreaseQuantity(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodGet {
-		var cart Cart
-		var book Books
+		var cart types.Cart
+		var book types.Books
 
 		cartId, err := strconv.Atoi(request.URL.Path[len("/api/cart/increaseQuantity/"):])
 		if err != nil {
@@ -196,7 +184,7 @@ func handleDelete(writer http.ResponseWriter, request *http.Request) {
 
 func handleUpdateById(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodPut {
-		var dataStore Cart
+		var dataStore types.Cart
 		json.NewDecoder(request.Body).Decode(&dataStore)
 
 		id, err := strconv.Atoi(request.URL.Path[len("/api/cart/updateById/"):])
@@ -225,9 +213,9 @@ func handleGetById(writer http.ResponseWriter, request *http.Request) {
 			http.Error(writer, err.Error(), http.StatusInternalServerError)
 		}
 
-		cartDetails := []Cart{}
+		cartDetails := []types.Cart{}
 		for rows.Next() {
-			var cartDetail Cart
+			var cartDetail types.Cart
 			rows.Scan(&cartDetail.BookName, &cartDetail.BookID, &cartDetail.CartID, &cartDetail.Quantity)
 			if err != nil {
 				http.Error(writer, err.Error(), http.StatusInternalServerError)
@@ -240,7 +228,7 @@ func handleGetById(writer http.ResponseWriter, request *http.Request) {
 
 func handleCreate(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodPost {
-		var data Cart
+		var data types.Cart
 		json.NewDecoder(request.Body).Decode(&data)
 
 		_, err := db.Exec("insert into cart (BookName,BookID, CartID, Quantity) values (?,?,?,?)", data.BookName, data.BookID, data.CartID, data.Quantity)

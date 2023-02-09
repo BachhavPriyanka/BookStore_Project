@@ -8,22 +8,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/BachhavPriyanka/BookStore_Project/types"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
 var db *sql.DB
-
-type Users struct {
-	Id       int    `json:"id"`
-	UserName string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type LoginDTO struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
 
 func main() {
 	var err error
@@ -54,7 +44,7 @@ func Operation() {
 
 func handleUserLogin(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodPost {
-		var dto LoginDTO
+		var dto types.LoginDTO
 		json.NewDecoder(request.Body).Decode(&dto)
 
 		rows, err := db.Query("SELECT email,password from users where email = ? and password = ?", dto.Email, dto.Password)
@@ -64,10 +54,10 @@ func handleUserLogin(writer http.ResponseWriter, request *http.Request) {
 		}
 		defer rows.Close()
 
-		loginData := []LoginDTO{}
+		loginData := []types.LoginDTO{}
 
 		for rows.Next() {
-			var tempData LoginDTO
+			var tempData types.LoginDTO
 			err = rows.Scan(&tempData.Email, &tempData.Password)
 			if err != nil {
 				log.Fatal(err)
@@ -102,7 +92,7 @@ func handleUserDelete(writer http.ResponseWriter, request *http.Request) {
 func handleUpdateUser(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodPut {
 
-		var dto Users
+		var dto types.Users
 		json.NewDecoder(request.Body).Decode(&dto)
 
 		id, err := strconv.Atoi(request.URL.Path[len("/api/userservice/update/"):])
@@ -122,7 +112,7 @@ func handleUpdateUser(writer http.ResponseWriter, request *http.Request) {
 
 func handleUserRegistration(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodPost {
-		var user Users
+		var user types.Users
 		json.NewDecoder(request.Body).Decode(&user)
 		_, err := db.Exec("Insert into users (id, username, email, password) values (?,?,?,?)", user.Id, user.UserName, user.Email, user.Password)
 		if err != nil {
@@ -147,10 +137,10 @@ func handleUserServiceWithId(writer http.ResponseWriter, request *http.Request) 
 		}
 		defer rows.Close()
 
-		users := []Users{}
+		users := []types.Users{}
 
 		for rows.Next() {
-			var user Users
+			var user types.Users
 			err = rows.Scan(&user.Id, &user.UserName, &user.Email, &user.Password)
 			if err != nil {
 				http.Error(writer, err.Error(), http.StatusInternalServerError)
@@ -171,10 +161,10 @@ func handleUserService(writer http.ResponseWriter, request *http.Request) {
 		}
 		defer rows.Close()
 
-		users := []Users{}
+		users := []types.Users{}
 
 		for rows.Next() {
-			var user Users
+			var user types.Users
 			err = rows.Scan(&user.Id, &user.UserName, &user.Email, &user.Password)
 			if err != nil {
 				http.Error(writer, err.Error(), http.StatusInternalServerError)
