@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"strconv"
 
+	repository "github.com/BachhavPriyanka/BookStore_Project/storage"
 	"github.com/BachhavPriyanka/BookStore_Project/types"
+	tokenutil "github.com/BachhavPriyanka/BookStore_Project/util"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -32,6 +34,10 @@ func main() {
 	Operation()
 }
 
+type UserRegister struct {
+	Repository *repository.UserRegistrationrepository
+}
+
 func Operation() {
 	http.HandleFunc("/api/userservice", handleUserService)
 	http.HandleFunc("/api/userservice/get/", handleUserServiceWithId)
@@ -39,37 +45,49 @@ func Operation() {
 	http.HandleFunc("/api/userservice/update/", handleUpdateUser)
 	http.HandleFunc("/api/userservice/delete/", handleUserDelete)
 	http.HandleFunc("/api/userservice/login", handleUserLogin)
+	http.HandleFunc("/api/userservice/verifytoken", verifyToken)
 	http.ListenAndServe(":8000", nil)
 }
 
+func verifyToken(w http.ResponseWriter, r *http.Request) {
+
+	jwtToken := r.FormValue("jwttoken")
+
+	useridInt64, _ := tokenutil.DecodeToken(jwtToken)
+
+	userid := int(useridInt64)
+	fmt.Println(userid)
+	useridString := strconv.Itoa(userid)
+	fmt.Println(useridString)
+	w.Write([]byte(useridString))
+
+}
+
 func handleUserLogin(writer http.ResponseWriter, request *http.Request) {
-	if request.Method == http.MethodPost {
-		var dto types.LoginDTO
-		json.NewDecoder(request.Body).Decode(&dto)
+	var loginDetails types.LoginDTO
+	json.NewDecoder(request.Body).Decode(&loginDetails)
+	userName := loginDetails.Email
+	passWord := loginDetails.Password
+	fmt.Println("Username", userName)
+	fmt.Println("password", passWord)
 
-		rows, err := db.Query("SELECT email,password from users where email = ? and password = ?", dto.Email, dto.Password)
-		if err != nil {
-			http.Error(writer, "User not found", http.StatusInternalServerError)
-			return
-		}
-		defer rows.Close()
-
-		loginData := []types.LoginDTO{}
-
-		for rows.Next() {
-			var tempData types.LoginDTO
-			err = rows.Scan(&tempData.Email, &tempData.Password)
-			if err != nil {
-				log.Fatal(err)
-			}
-			loginData = append(loginData, tempData)
-		}
-		if len(loginData) == 1 {
-			writer.Write([]byte("Login Successful"))
-		} else {
-			writer.Write([]byte("Login Unsuccessful"))
-		}
+	user := &repository.UserRegistrationrepository{
+		DB: db,
 	}
+
+	userValidation, err := user.ValidateUserCredentials(userName, passWord)
+	if err != nil {
+		http.Error(writer, "User not Valid", http.StatusInternalServerError)
+		return
+	}
+	fmt.Println(userValidation)
+
+	token, err := tokenutil.CreateToken(int64(userValidation.Id))
+	if err != nil {
+		http.Error(writer, "Error creating token", http.StatusInternalServerError)
+	}
+	writer.Write([]byte(token))
+
 }
 
 func handleUserDelete(writer http.ResponseWriter, request *http.Request) {

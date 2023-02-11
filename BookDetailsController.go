@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/BachhavPriyanka/BookStore_Project/types"
+	tokenutil "github.com/BachhavPriyanka/BookStore_Project/util"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -33,13 +34,45 @@ func main() {
 }
 
 func Operation() {
-	http.HandleFunc("/getBooks", handleAllBooks)
+	http.HandleFunc("/getBooks", handleBooks)
 	http.HandleFunc("/getBookByName/", handleBookByName)
 	http.HandleFunc("/getBook/", handleBookById)
 	http.HandleFunc("/addBook", handleAddBook)
 	http.HandleFunc("/update/", handleUpdate)
 	http.HandleFunc("/delete/", handleDelete)
 	http.ListenAndServe(":8000", nil)
+}
+
+func handleBooks(w http.ResponseWriter, r *http.Request) {
+	// Geting the token from the request header
+	headerToken := r.Header.Get("Authorization")
+
+	// Verifying the token
+	userID, err := tokenutil.DecodeToken(headerToken)
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	fmt.Println(userID)
+	if r.Method == http.MethodGet {
+		rows, err := db.Query("SELECT * FROM books")
+		if err != nil {
+			http.Error(w, "Not found", http.StatusInternalServerError)
+			return
+		}
+
+		bookDetails := []types.Books{}
+
+		for rows.Next() {
+			var book types.Books
+			err = rows.Scan(&book.Id, &book.Title, &book.Author, &book.BookQuantity)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+			}
+			bookDetails = append(bookDetails, book)
+		}
+		json.NewEncoder(w).Encode(bookDetails)
+	}
 }
 func handleDelete(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodDelete {
