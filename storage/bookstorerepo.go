@@ -54,7 +54,7 @@ func (r *BookStoreRepository) AddBook(book *types.Books) (int, error) {
 	return int(id), nil
 }
 
-func (r *BookStoreRepository) UpdateBook(id int, book *types.Books) error {
+func (r *BookStoreRepository) UpdateBook(id int64, book *types.Books) error {
 	_, err := r.DB.Exec("UPDATE books SET title = ?, author = ? WHERE id = ?", book.Title, book.Author, id)
 	return err
 }

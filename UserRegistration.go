@@ -1,10 +1,8 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -15,39 +13,39 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-var db *sql.DB
+// var db *sql.DB
 
-func main() {
-	var err error
-	//"UserName:Password@tcp(portNumber)/databaseName"
-	db, err = sql.Open("mysql", "root:root@tcp(localhost:6603)/BookStore")
-	if err != nil {
-		log.Fatal(err)
-	}
+// func main() {
+// 	var err error
+// 	//"UserName:Password@tcp(portNumber)/databaseName"
+// 	db, err = sql.Open("mysql", "root:root@tcp(localhost:6603)/BookStore")
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
 
-	pingErr := db.Ping()
-	if pingErr != nil {
-		log.Fatal(pingErr)
-	}
-	fmt.Println("Connected")
+// 	pingErr := db.Ping()
+// 	if pingErr != nil {
+// 		log.Fatal(pingErr)
+// 	}
+// 	fmt.Println("Connected")
 
-	Operation()
-}
+// 	Operation()
+// }
 
 type UserRegister struct {
 	Repository *repository.UserRegistrationrepository
 }
 
-func Operation() {
-	http.HandleFunc("/api/userservice", handleUserService)
-	http.HandleFunc("/api/userservice/get/", handleUserServiceWithId)
-	http.HandleFunc("/api/userservice/register", handleUserRegistration)
-	http.HandleFunc("/api/userservice/update/", handleUpdateUser)
-	http.HandleFunc("/api/userservice/delete/", handleUserDelete)
-	http.HandleFunc("/api/userservice/login", handleUserLogin)
-	http.HandleFunc("/api/userservice/verifytoken", verifyToken)
-	http.ListenAndServe(":8000", nil)
-}
+// func Operation() {
+// 	http.HandleFunc("/api/userservice", handleUserService)
+// 	http.HandleFunc("/api/userservice/get/", handleUserServiceWithId)
+// 	http.HandleFunc("/api/userservice/register", handleUserRegistration)
+// 	http.HandleFunc("/api/userservice/update/", handleUpdateUser)
+// 	http.HandleFunc("/api/userservice/delete/", handleUserDelete)
+// 	http.HandleFunc("/api/userservice/login", handleUserLogin)
+// 	http.HandleFunc("/api/userservice/verifytoken", verifyToken)
+// 	http.ListenAndServe(":8000", nil)
+// }
 
 func verifyToken(w http.ResponseWriter, r *http.Request) {
 
@@ -63,7 +61,7 @@ func verifyToken(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func handleUserLogin(writer http.ResponseWriter, request *http.Request) {
+func UserLogin(writer http.ResponseWriter, request *http.Request) {
 	var loginDetails types.LoginDTO
 	json.NewDecoder(request.Body).Decode(&loginDetails)
 	userName := loginDetails.Email
@@ -90,7 +88,7 @@ func handleUserLogin(writer http.ResponseWriter, request *http.Request) {
 
 }
 
-func handleUserDelete(writer http.ResponseWriter, request *http.Request) {
+func UserDelete(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodDelete {
 		id, err := strconv.Atoi(request.URL.Path[len("/api/userservice/delete/"):])
 		if err != nil {
@@ -107,7 +105,7 @@ func handleUserDelete(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func handleUpdateUser(writer http.ResponseWriter, request *http.Request) {
+func UpdateUser(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodPut {
 
 		var dto types.Users
@@ -128,7 +126,7 @@ func handleUpdateUser(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func handleUserRegistration(writer http.ResponseWriter, request *http.Request) {
+func UserRegistration(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodPost {
 		var user types.Users
 		json.NewDecoder(request.Body).Decode(&user)
@@ -141,7 +139,7 @@ func handleUserRegistration(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func handleUserServiceWithId(writer http.ResponseWriter, request *http.Request) {
+func UserServiceWithId(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodGet {
 		id, err := strconv.Atoi(request.URL.Path[len("/api/userservice/get/"):])
 		if err != nil {
@@ -170,7 +168,7 @@ func handleUserServiceWithId(writer http.ResponseWriter, request *http.Request) 
 	}
 }
 
-func handleUserService(writer http.ResponseWriter, request *http.Request) {
+func UserService(writer http.ResponseWriter, request *http.Request) {
 	if request.Method == http.MethodGet {
 		rows, err := db.Query("SELECT id,username,email,password from users")
 		if err != nil {

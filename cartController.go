@@ -13,10 +13,6 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-type ResponseDTO struct {
-	Message string `json:"message"`
-}
-
 var db *sql.DB
 
 func main() {
@@ -235,7 +231,7 @@ func handleCreate(writer http.ResponseWriter, request *http.Request) {
 		if err != nil {
 			http.Error(writer, "Invalid Insertion", http.StatusInternalServerError)
 		}
-		response := ResponseDTO{
+		response := types.ResponseDTO{
 			Message: "Item added to cart successfully",
 		}
 		json.NewEncoder(writer).Encode(response)
