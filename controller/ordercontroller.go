@@ -2,12 +2,11 @@ package bookstorecontroller
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
+	"strconv"
 
 	repository "github.com/BachhavPriyanka/BookStore_Project/storage"
 	"github.com/BachhavPriyanka/BookStore_Project/types"
-	tokenutil "github.com/BachhavPriyanka/BookStore_Project/util"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -15,20 +14,13 @@ type OrderController struct {
 	Repository *repository.OrderRepository
 }
 
-// Delete Method
+// Delete Method for deleting order
 func (c *OrderController) CancelOrderByID(writer http.ResponseWriter, request *http.Request) {
-
-	headerToken := request.Header.Get("Authorization")
-	fmt.Println(headerToken)
-
-	userId, err := tokenutil.DecodeToken(headerToken)
+	id, err := strconv.Atoi(request.URL.Query().Get("id"))
 	if err != nil {
-		http.Error(writer, "Unauthorized", http.StatusUnauthorized)
-		return
+		http.Error(writer, "id not found", http.StatusUnauthorized)
 	}
-	fmt.Println("userid int int64", userId)
-
-	orderCancel, err := c.Repository.CancelOrderByID(int(userId))
+	orderCancel, err := c.Repository.CancelOrderByID(int(id))
 	if err != nil {
 		http.Error(writer, "Error getting order", http.StatusInternalServerError)
 		return
@@ -40,18 +32,11 @@ func (c *OrderController) CancelOrderByID(writer http.ResponseWriter, request *h
 
 // Get Method to retrieve orders by id
 func (c *OrderController) RetrieveOrderByID(writer http.ResponseWriter, request *http.Request) {
-
-	headerToken := request.Header.Get("Authorization")
-	fmt.Println(headerToken)
-
-	userId, err := tokenutil.DecodeToken(headerToken)
+	id, err := strconv.Atoi(request.URL.Query().Get("id"))
 	if err != nil {
-		http.Error(writer, "Unauthorized", http.StatusUnauthorized)
-		return
+		http.Error(writer, "id not found", http.StatusUnauthorized)
 	}
-	fmt.Println("userid int int64", userId)
-
-	dataRetrieve, err := c.Repository.RetrieveOrderByID(int(userId))
+	dataRetrieve, err := c.Repository.RetrieveOrderByID(id)
 	if err != nil {
 		http.Error(writer, "Invalid order ID", http.StatusBadRequest)
 		return
@@ -63,16 +48,6 @@ func (c *OrderController) RetrieveOrderByID(writer http.ResponseWriter, request 
 // Get Method to retrieve all orders
 func (c *OrderController) RetrieveAllOrders(writer http.ResponseWriter, request *http.Request) {
 
-	headerToken := request.Header.Get("Authorization")
-	fmt.Println(headerToken)
-
-	userId, err := tokenutil.DecodeToken(headerToken)
-	if err != nil {
-		http.Error(writer, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	fmt.Println("userid int int64", userId)
-
 	allOrders, err := c.Repository.RetrieveAllOrders()
 	if err != nil {
 		http.Error(writer, "Invalid", http.StatusBadRequest)
@@ -82,20 +57,11 @@ func (c *OrderController) RetrieveAllOrders(writer http.ResponseWriter, request 
 	json.NewEncoder(writer).Encode(allOrders)
 }
 
-// POST Method
+// POST Method for insertion
 func (c *OrderController) Insertion(writer http.ResponseWriter, request *http.Request) {
-	headerToken := request.Header.Get("Authorization")
-	fmt.Println(headerToken)
-
-	userId, err := tokenutil.DecodeToken(headerToken)
-	if err != nil {
-		http.Error(writer, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	fmt.Println("userid int int64", userId)
-
 	var orderData types.Orders
 	json.NewDecoder(request.Body).Decode(&orderData)
+
 	orderInsertion, err := c.Repository.Insertion(&orderData)
 	if err != nil {
 		http.Error(writer, "Invalid", http.StatusBadRequest)

@@ -4,7 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 
+	"github.com/BachhavPriyanka/BookStore_Project/constant"
 	"github.com/BachhavPriyanka/BookStore_Project/types"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type OrderRepository struct {
@@ -13,7 +15,7 @@ type OrderRepository struct {
 
 // Delete Method for canceling order
 func (r *OrderRepository) CancelOrderByID(id int) (string, error) {
-	_, err := r.DB.Exec("Delete from orders WHERE orderId = ?", id)
+	_, err := r.DB.Exec(constant.DeleteOrderQuery, id)
 	if err != nil {
 		return "Id not present", err
 	}
@@ -22,9 +24,23 @@ func (r *OrderRepository) CancelOrderByID(id int) (string, error) {
 }
 
 // GET Method to retrieve order by ID
-func (r *OrderRepository) RetrieveOrderByID(id int) (*[]types.Orders, error) {
+func (r *OrderRepository) RetrieveOrderByID(id int) (*types.Orders, error) {
+	var dataStore types.Orders
+	fmt.Println(id)
+	err := r.DB.QueryRow(constant.GetOrderQuery, id).Scan(&dataStore.OrderId, &dataStore.UserId, &dataStore.BookId, &dataStore.Quantity, &dataStore.OrderDate, &dataStore.PriceOfOrder, &dataStore.OrderStatus)
+	if err != nil {
+		return nil, err
+	}
 
-	rows, _ := r.DB.Query("SELECT * FROM orders WHERE orderId = ?", id)
+	return &dataStore, nil
+}
+
+// GET Method to retrieve all orders
+func (r *OrderRepository) RetrieveAllOrders() (*[]types.Orders, error) {
+	rows, err := r.DB.Query(constant.GetAllOrdersQuery)
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 
 	orderGet := []types.Orders{}
@@ -39,20 +55,9 @@ func (r *OrderRepository) RetrieveOrderByID(id int) (*[]types.Orders, error) {
 	return &orderGet, nil
 }
 
-// GET Method to retrieve all orders
-func (r *OrderRepository) RetrieveAllOrders() (*types.Orders, error) {
-	var orderData types.Orders
-	err := r.DB.QueryRow("SELECT * FROM orders").Scan(&orderData.OrderId, &orderData.UserId, &orderData.BookId, &orderData.Quantity, &orderData.OrderDate, &orderData.PriceOfOrder, &orderData.OrderStatus)
-	if err != nil {
-		return nil, fmt.Errorf("not readable")
-	}
-
-	return &orderData, nil
-}
-
 // POST Method to post orders
 func (r *OrderRepository) Insertion(orderDetails *types.Orders) (int, error) {
-	result, err := r.DB.Exec("INSERT INTO orders (orderId, userId, bookId, quantity ,orderDate, price ,orderStatus) VALUES (?,?,?,?,?,?,?)", orderDetails.OrderId, orderDetails.UserId, orderDetails.BookId, orderDetails.Quantity, orderDetails.OrderDate, orderDetails.PriceOfOrder, orderDetails.OrderStatus)
+	result, err := r.DB.Exec(constant.PostInsertQuery, orderDetails.OrderId, orderDetails.UserId, orderDetails.BookId, orderDetails.Quantity, orderDetails.OrderDate, orderDetails.PriceOfOrder, orderDetails.OrderStatus)
 	if err != nil {
 		return 0, fmt.Errorf("not readable")
 	}

@@ -1,10 +1,11 @@
-package tokenutil
+package util
 
 import (
 	"errors"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 const (
@@ -31,7 +32,7 @@ func CreateToken(userID int64) (string, error) {
 	// Signed token and get the complete encoded token as a string
 	tokenString, err := token.SignedString([]byte(secret))
 	if err != nil {
-		return "", err
+		return "converting to string error", err
 	}
 
 	return tokenString, nil
@@ -50,7 +51,7 @@ func DecodeToken(tokenString string) (int64, error) {
 	}
 
 	if !token.Valid {
-		return 0, errors.New("Token is invalid")
+		return 0, errors.New("token is invalid")
 	}
 
 	return claims.UserID, nil
