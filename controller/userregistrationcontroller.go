@@ -17,6 +17,17 @@ type UserRegister struct {
 	Repository *repository.UserRegistrationrepository
 }
 
+//Get Met
+func (c *UserRegister) GetAllUsingToken(writer http.ResponseWriter, request *http.Request) {
+	retrieveData, err := c.Repository.UserService()
+	if err != nil {
+		http.Error(writer, "Error", http.StatusBadRequest)
+		return
+	}
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(retrieveData)
+}
+
 // Get Method to verify the tokens
 func (c *UserRegister) VerifyToken(writer http.ResponseWriter, request *http.Request) {
 	jwtToken := request.FormValue("jwttoken")
